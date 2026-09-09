@@ -21,7 +21,12 @@ class Chip8 {
 
         /*  Open the file, read the binary content and copies it into the memory array stating from
         *   0x200 address
-        *   @param {filename} - the path and name of the ROM to load
+        *   @param {filename} - the path of the ROM to load
         */
-        void loadROM(const char* filename);
+        void loadROM(const char* filepath);
+
+        /* This operation executes a single CPU cycle. 
+        *  Performs the fetch, decode, execute strictly respecting the 35 standard CHIP-8 opcodes.
+        */
+        void emulateCycle();
 };
