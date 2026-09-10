@@ -3,6 +3,10 @@
 #include <fstream>
 #include <iostream>
 #include <ostream>
+#include <sys/types.h>
+#include <cstdlib>
+#include <ctime>
+
 
 constexpr int MEMORY_SIZE = 4096;
 constexpr int START = 512;
@@ -11,6 +15,7 @@ constexpr int FREE_SPACE = MEMORY_SIZE -START;
 using namespace std;
 
 Chip8::Chip8(){
+    srand(time(NULL));
     for(int i = 0; i < (sizeof(memory)/sizeof(uint8_t)); i++){
         memory[i] = 0;
     }
@@ -55,39 +60,137 @@ void Chip8::loadROM(const char* filepath){
     file.close();
 }
 
+void Chip8::draw(uint8_t x, uint8_t y, uint8_t n){
 
-void executeOpcode(uint16_t opcode){
+}
+
+void Chip8::executeOpcode(uint16_t opcode){
+
+    uint16_t NNN = opcode & 0x0FFF;
+    uint8_t NN = opcode & 0x00FF;
+    uint8_t N = opcode & 0x000F;
+    uint8_t X = (opcode & 0x0F00) >> 8;
+    uint8_t Y = (opcode & 0x00F0) >> 4;
+    uint8_t flag = 0;
+
+
     switch (opcode & 0xF000) {
         case 0x0000:
-            
+            if(opcode == 0x00E0){
+                for(int i = 0; i < (sizeof(display)/sizeof(uint8_t)); i++){
+                    display[i] = 0;
+                }
+            }else if (opcode == 0x00EE){
+                SP--;
+                PC = stack[SP];
+            }
+            break;
         case 0x1000:
-
+            PC = NNN;
+            break;
         case 0x2000:
-
+            stack[SP] = PC;
+            SP++;    
+            PC = NNN;
+            break;
         case 0x3000:
-
+            if(V[X] == NN){
+                PC+=2;
+            }
+            break;
         case 0x4000:
-
+            if(V[X] != NN){
+                PC+=2;
+            }
+            break;
         case 0x5000:
-
+            if(V[X] == V[Y]){
+                PC+=2;
+            }
+            break;
         case 0x6000:
-
+            V[X] = NN;
+            break;
         case 0x7000:
-
+            V[X] += NN;
+            break;
+        case 0x8000:
+            switch (N) {
+                case 0:
+                    V[X] = V[Y];
+                    break;
+                case 1:
+                    V[X] |= V[Y];
+                    break;
+                case 2: 
+                    V[X] &= V[Y];
+                    break;
+                case 3:
+                    V[X] ^= V[Y];
+                    break;
+                case 4:
+                    //remaining space in V[X] - V[Y]  to check if there is the overflow
+                    if(UINT8_MAX - V[X] < V[Y]){
+                        flag = 1;
+                    }else{
+                        flag = 0;
+                    }
+                    V[X] += V[Y];
+                    V[0xF] = flag;
+                    break;
+                case 5:
+                    if(V[X] >= V[Y]){
+                        flag = 1;
+                    }else{
+                        flag = 0;
+                    }
+                    V[X] -= V[Y];
+                    V[0xF] = flag;
+                    break;
+                case 6:
+                    flag = V[X] & 0x1;
+                    V[X] >>= 1;
+                    V[0xF] = flag;
+                    break;
+                case 7:
+                    if(V[Y] >= V[X]){
+                        flag = 1;
+                    }else{
+                        flag = 0;
+                    }
+                    V[X] = V[Y] - V[X];
+                    V[0xF] = flag;
+                    break;
+                case 0XE:
+                    flag =(V[X] & 0x80) >> 7;
+                    V[X] <<= 1;
+                    V[0xF] = flag;
+                    break;
+            }
+            break;
         case 0x9000:
-
+            if(V[X] != V[Y]){
+                PC+=2;
+            }
+            break;
         case 0xA000:
-
+            I = NNN;
+            break;
         case 0xB000:
-
+            PC = V[0]+ NNN;
+            break;
         case 0xC000:
-
+            V[X] = (rand() % 256) & NN;
+            break;
         case 0xD000:
-
+            draw(V[X], V[Y], N);
+            break;
         case 0xE000:
 
+            break;
         case 0xF000:
 
+            break;
         default:
             printf ("Unknown opcode: 0x%X\n", opcode);
     }
@@ -110,8 +213,9 @@ void Chip8::emulateCycle(){
     */
 
     uint16_t opcode = (memory[PC] << 8) | memory[PC+1];
-
+    
+    PC = PC + 2;
+    
     executeOpcode(opcode);
 
-    PC = PC + 2;
 }

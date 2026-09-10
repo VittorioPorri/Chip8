@@ -7,12 +7,19 @@ class Chip8 {
         uint16_t I;
         uint16_t PC;
         uint16_t stack[16];
-        uint8_t SP;
+        uint8_t SP; //stack index 
         uint8_t delayTimer;
         uint8_t soundTimer;
         uint8_t display[64 * 32];
         bool keypad[16];
 
+
+        /*All of the 35 implementation of the opcode */
+        void executeOpcode(uint16_t opcode);
+
+        /*Draw a sprite at cordinate (x,y) that has width of 8 pixel and height of n pixel, starting from I value */
+        void draw(uint8_t x, uint8_t y, uint8_t n);
+    
     public:
         /*  Resets all the register, memory and timer to zero. Set the program counter (PC) to 0x200 
         *   (because the first 512 bytes were reserved to the interpreter)
