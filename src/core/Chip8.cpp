@@ -60,7 +60,30 @@ void Chip8::loadROM(const char* filepath){
     file.close();
 }
 
+int currX(uint8_t x, int j){
+    return (x + j) % 64;
+}
+
+int currY(uint8_t y, int i){
+    return (y + i)  % 32;
+}
+
 void Chip8::draw(uint8_t x, uint8_t y, uint8_t n){
+
+    V[0xF] = 0;
+
+    for(int i = 0; i < n ; i++){
+        uint8_t line = memory[I+i];
+        for(int j = 0; j < 8; j++){
+            if((line & (0x80 >> j)) != 0){
+                int pos = (currY(y, i) * 64) + currX(x, j);
+                if(display[pos] == 1){
+                    V[0xF] = 1;
+                }
+                display[pos] ^= 1;
+            }
+        }
+    }
 
 }
 
