@@ -209,10 +209,47 @@ void Chip8::executeOpcode(uint16_t opcode){
             draw(V[X], V[Y], N);
             break;
         case 0xE000:
-
+            if(NN == 0x9E){
+                if(keypad[V[X]]!= 0){
+                    PC += 2;
+                }
+            }else if(NN == 0xA1){
+                if(keypad[V[X]] == 0){
+                    PC += 2;
+                }
+            }
             break;
         case 0xF000:
+            switch (NN) {
+                case 0x07:
 
+                    break;
+                case 0x0A:
+
+                    break;
+                case 0x15:
+
+                    break;
+                case 0x18:
+
+                    break;
+                case 0x1E:
+
+                    break;
+                case 0x29:
+
+                    break;
+                case 0x33:
+
+                    break;
+                case 0x55:
+
+                    break;
+                case 0x65:
+
+                    break;
+            }
+            
             break;
         default:
             printf ("Unknown opcode: 0x%X\n", opcode);
