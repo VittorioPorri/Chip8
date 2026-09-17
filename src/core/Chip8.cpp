@@ -16,9 +16,34 @@ using namespace std;
 
 Chip8::Chip8(){
     srand(time(NULL));
+
     for(int i = 0; i < (sizeof(memory)/sizeof(uint8_t)); i++){
         memory[i] = 0;
     }
+
+    uint8_t fontset[80] = {
+        0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+        0x20, 0x60, 0x20, 0x20, 0x70, // 1
+        0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+        0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+        0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+        0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+        0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+        0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+        0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+        0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+        0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+        0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+        0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+        0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+        0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+        0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+    };
+
+    for(int i = 0; i < sizeof(fontset); i++){
+        memory[i] = fontset[i];
+    }    
+
     for(int i = 0; i < (sizeof(V)/sizeof(uint8_t)); i++){
         V[i] = 0;
     }
@@ -33,7 +58,7 @@ Chip8::Chip8(){
     for(int i = 0; i < (sizeof(display)/sizeof(uint8_t)); i++){
         display[i] = 0;
     }
-    for(int i = 0; i < sizeof(keypad); i++){
+    for(int i = 0; i < sizeof(keypad)/sizeof(bool); i++){
         keypad[i] = false;
     }
 }
@@ -60,23 +85,23 @@ void Chip8::loadROM(const char* filepath){
     file.close();
 }
 
-int currX(uint8_t x, int j){
-    return (x + j) % 64;
-}
-
-int currY(uint8_t y, int i){
-    return (y + i)  % 32;
-}
-
 void Chip8::draw(uint8_t x, uint8_t y, uint8_t n){
 
     V[0xF] = 0;
+
+    uint8_t startX = x % 64;
+    uint8_t startY = y % 32;
 
     for(int i = 0; i < n ; i++){
         uint8_t line = memory[I+i];
         for(int j = 0; j < 8; j++){
             if((line & (0x80 >> j)) != 0){
-                int pos = (currY(y, i) * 64) + currX(x, j);
+
+                if(startX + j >= 64 || startY + i >= 32) {
+                    continue;
+                }
+
+                int pos = ((startY + i) * 64) + (startX + j);
                 if(display[pos] == 1){
                     V[0xF] = 1;
                 }
@@ -210,11 +235,11 @@ void Chip8::executeOpcode(uint16_t opcode){
             break;
         case 0xE000:
             if(NN == 0x9E){
-                if(keypad[V[X]]!= 0){
+                if((keypad[V[X] & 0xF])!= 0){
                     PC += 2;
                 }
             }else if(NN == 0xA1){
-                if(keypad[V[X]] == 0){
+                if((keypad[V[X] & 0xF]) == 0){
                     PC += 2;
                 }
             }
@@ -222,34 +247,57 @@ void Chip8::executeOpcode(uint16_t opcode){
         case 0xF000:
             switch (NN) {
                 case 0x07:
-
+                    V[X] = delayTimer;
                     break;
                 case 0x0A:
-
+                {
+                    bool Press = false;
+                    for(int i = 0; i <sizeof(keypad)/sizeof(bool); i++){
+                        if(keypad[i] != false){
+                            V[X] = i;
+                            Press = true;
+                        }
+                    }
+                    
+                    if(!Press){
+                        PC-=2;
+                    }
                     break;
+                }
                 case 0x15:
-
+                    delayTimer = V[X];
                     break;
                 case 0x18:
-
+                    soundTimer = V[X];
                     break;
                 case 0x1E:
-
+                    I+=V[X];
                     break;
                 case 0x29:
-
+                    I = (V[X] & 0xF) * 0x5;
                     break;
                 case 0x33:
-
+                {
+                    int i = 2;
+                    uint8_t value = V[X];
+                    while(i >= 0){
+                        memory[I+i] = value % 10;
+                        value = value/10;
+                        i--;
+                    }
                     break;
-                case 0x55:
-
+                }
+                case 0x55:  
+                    for(int i = 0; i <= X; i++){
+                        memory[I+i] = V[i];
+                    }
                     break;
                 case 0x65:
-
+                    for(int i = 0; i <= X; i++){
+                        V[i] = memory[I+i];
+                    }
                     break;
             }
-            
             break;
         default:
             printf ("Unknown opcode: 0x%X\n", opcode);
@@ -277,5 +325,7 @@ void Chip8::emulateCycle(){
     PC = PC + 2;
     
     executeOpcode(opcode);
+
+
 
 }
