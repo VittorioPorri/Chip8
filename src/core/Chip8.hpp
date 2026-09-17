@@ -12,6 +12,7 @@ class Chip8 {
         uint8_t soundTimer;
         uint8_t display[64 * 32];
         bool keypad[16];
+        bool drawFlag = false;
 
 
         /*All of the 35 implementation of the opcode */
@@ -26,6 +27,29 @@ class Chip8 {
         */
         Chip8();
 
+        /* Sets the state of a specific key on the hex keypad.
+        *  @param index - The hex keypad index (0x0 to 0xF)
+        *  @param isPressed - Boolean indicating if the key is currently held down
+        */
+        void setKey(uint8_t index, bool isPressed);
+
+        /* Returns a read-only pointer to the display array.
+        *  Used by the frontend renderer to draw the pixels on the screen.
+        *  @return A constant pointer to the 64x32 display buffer
+        */
+        const uint8_t* getDisplay() const;
+
+        /* Checks if the display has been updated during the last cycle.
+        *  @return True if a draw operation occurred, meaning the screen needs to be re-rendered
+        */
+        bool getDrawFlag() const;
+
+        /* Manually sets the draw flag. 
+        *  Primarily used by the frontend to reset the flag to false after updating the screen.
+        *  @param flag - The boolean value to set the draw flag to
+        */
+        void setDrawFlag(bool flag);
+
         /*  Open the file, read the binary content and copies it into the memory array stating from
         *   0x200 address
         *   @param {filename} - the path of the ROM to load
@@ -36,4 +60,6 @@ class Chip8 {
         *  Performs the fetch, decode, execute strictly respecting the 35 standard CHIP-8 opcodes.
         */
         void emulateCycle();
+
+
 };

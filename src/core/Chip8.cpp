@@ -63,6 +63,24 @@ Chip8::Chip8(){
     }
 }
 
+void Chip8::setKey(uint8_t index, bool isPressed) {
+    if (index < 16) {
+        keypad[index] = isPressed;
+    }
+}
+
+const uint8_t* Chip8::getDisplay() const {
+    return display;
+}
+
+bool Chip8::getDrawFlag() const {
+    return drawFlag;
+}
+
+void Chip8::setDrawFlag(bool flag) {
+    drawFlag = flag;
+}
+
 void Chip8::loadROM(const char* filepath){
     ifstream file(filepath, ios::binary | ios::ate);
     
@@ -109,6 +127,7 @@ void Chip8::draw(uint8_t x, uint8_t y, uint8_t n){
             }
         }
     }
+    setDrawFlag(true);
 
 }
 
