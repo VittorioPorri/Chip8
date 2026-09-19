@@ -345,6 +345,14 @@ void Chip8::emulateCycle(){
     
     executeOpcode(opcode);
 
+}
 
+void Chip8::updateTime() {
+    if (delayTimer > 0) {
+        delayTimer--;
+    }
 
+    if (soundTimer > 0) {
+        soundTimer--;
+    }
 }

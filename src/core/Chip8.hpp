@@ -62,5 +62,7 @@ class Chip8 {
         */
         void emulateCycle();
 
+        //Decrese delayTimer and soundTimer by one
+        void updateTime();
 
 };
