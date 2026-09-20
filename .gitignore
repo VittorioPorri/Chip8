@@ -1,0 +1,12 @@
+build/
+
+chip8Emu
+*.exe
+*.out
+*.app
+
+*.o
+*.obj
+
+.vscode/
+.idea/
