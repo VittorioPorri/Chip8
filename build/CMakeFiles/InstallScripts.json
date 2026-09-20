@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/vitto/projects/chip8/build/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
